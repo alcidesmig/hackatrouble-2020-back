@@ -3,6 +3,8 @@ from passlib.hash import pbkdf2_sha256 as sha256
 from app import app
 from datetime import datetime
 
+#todo lazy queries
+
 db = SQLAlchemy(app)
 
 cliente_filas = db.Table('relacao_cliente_filas',

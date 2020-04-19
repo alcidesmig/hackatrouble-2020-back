@@ -1,3 +1,5 @@
+*parametros null passar sem valor*
+
 /register (ok)
     -  POST: cadastrar usuário
         - args: username (que é CPF/CNPJ), password, id_cliente, e args do cliente/estabelecimento
@@ -31,14 +33,34 @@
     - DELETE: cliente desinscrever de fila
         - args: jwt, id_fila
         - retorno: message
+        
 /fila
     - POST: cadastrar fila
         - args: jwt, args da fila
         - retorno: message
     - GET: pegar filas de um estabelecimento
         - args: id_fila (caso busca por única fila), estabelecimento_id (null=todas as filas)
-        - retorno: filas {id_fila,nome,qtd_pessoas,tempo_espera_atual,estabelecimento}
+        - retorno: filas {id_fila,nome,qtd_pessoas,tempo_espera_atual,estabelecimento_id,nome_estabelecimento}
     - DELETE: apagar fila
         - args: jwt, id_fila
         - retorno: message
+
+/fila/atendimento-encerrado
+    - POST: registrar atendimento encerrado de um cliente (saída)
+        - args: jwt, id_fila
+        - retorno: message
+
+/estabelecimento
+    - GET: pegar dados de estabelecimento
+        - args: jwt, categoria_id (null = todas), id_estabelecimento (null = todos)
+        - retorno: estabelecimentos{id_estabelecimento,categoria_id,endereco,cep,nome,horario_abertura,horario_fechamento}
         
+/fila/proximo:
+    - POST: dados do prox usuario a ser atendido
+        - args: jwt, id_fila
+        - retorno: nome_completo, id_cliente (null = sem fila)
+
+/fila/ordem
+    - GET: pegar ordem de uma ou todas as filas
+        - args: jwt, id_fila
+        - retorno: filas{id_fila,qtd_pessoas,tempo_espera_atual,nome,descricao,estabelecimento_id,nome_estabelecimento,clientes{posicao,nome_cliente,id_cliente}}

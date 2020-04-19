@@ -98,7 +98,7 @@ class cliente_fila(Resource):
         }, 200
         #todo delete
 
-    @jwt_required #todo arrumar posicoes
+    @jwt_required
     def delete(self):
         data = parser.parse_args()
         user = User.find_by_username(get_jwt_identity())
@@ -110,10 +110,6 @@ class cliente_fila(Resource):
                     'message': 'Operação não permitida'
                 }, 403
             cliente.filas.remove(fila)
-            if fila.usar_tempo_gerado:
-                fila.tempo_espera_atual = fila.tempo_espera_atual - fila.tempo_espera_gerado
-            else:
-                fila.tempo_espera_atual = fila.tempo_espera_atual - fila.tempo_espera_indicado
             db.session.add(fila)
             db.session.add(cliente)
             db.session.commit()
@@ -170,18 +166,27 @@ class crud_fila(Resource):
             filas = db.session.query(Fila).filter_by(estabelecimento_id=int(data['estabelecimento_id'])).all()
         else:
             filas = db.session.query(Fila).all()
-        filas_final = []
+        f = []
         for i in filas:
-            filas_final.append({
-                'id_fila': i.id,
-                'nome': i.nome,
-                'qtd_pessoas': len(i.clientes),
-                'tempo_espera_atual': i.tempo_espera_atual,
-                'estabelecimento': i.estabelecimento
-            })
+            tempo_espera = 0
+            if i.usar_tempo_gerado:
+                tempo_espera = i.tempo_espera_gerado
+            else:
+                tempo_espera = i.tempo_espera_indicado
+            f.append(
+                {
+                    'id_fila': i.id,
+                    'qtd_pessoas': len(i.clientes),
+                    'tempo_espera_atual': (len(i.clientes) * tempo_espera),
+                    'nome': i.nome,
+                    'descricao': i.descricao,
+                    'estabelecimento_id': i.estabelecimento_id,
+                    'nome_estabelecimento': i.estabelecimento.nome
+                }
+            )
         return {
-            'filas': filas_final
-        }, 200
+                'filas': f
+            }, 200
 
     @jwt_required
     def delete(self):
@@ -209,18 +214,135 @@ class crud_fila(Resource):
                 'message': 'Operação não permitida'
             }, 403
 
-#todo visualizar posição em fila: posicao_atual - clientes atendidos
-#todo cliente entrou, cliente saiu, cliente faltou
-#todo estabelecimento adiciona pessoa
-#todo visualizar: proximo da fila, todas pessoas,
+class visualizar_ordem_fila(Resource):
+    @jwt_required
+    def get(self):
+        data = parser.parse_args()
+        filter_ = (data['id_fila'])
+        filas = []
+        if filter_:
+            filas = db.session.query(Fila).filter_by(id=int(filter_)).first()
+        else:
+            filas = db.session.query(Fila).all()
+        f = []
+        for i in filas:
+            tempo_espera = 0
+            if i.usar_tempo_gerado:
+                tempo_espera = i.tempo_espera_gerado
+            else:
+                tempo_espera = i.tempo_espera_indicado
+            clientes = []
+            for j in i.clientes: #todo O(n^2) pode virar O(n) com counting sort #todo otimizar queries
+                clientes.append(
+                    {
+                        'posicao': get_pos_usuario(j.id,i.id),
+                        'id_cliente': j.id,
+                        'nome_cliente': j.nome_completo
+                    }
+                )
+            f.append(
+                {
+                    'id_fila': i.id,
+                    'qtd_pessoas': len(i.clientes),
+                    'tempo_espera_atual': (len(i.clientes) * tempo_espera),
+                    'nome': i.nome,
+                    'descricao': i.descricao,
+                    'estabelecimento_id': i.estabelecimento_id,
+                    'nome_estabelecimento': i.estabelecimento.nome,
+                    'clientes': clientes
+                }
+            )
+            return {
+                'filas': f
+            }, 200
+
+class prox_da_fila(Resource):
+    @jwt_required
+    def get(self):
+        data = parser.parse_args()
+        filas = []
+        if (data['id_fila']):
+            fila = db.session.query(Fila).filter_by(id=int((data['id_fila']))).first()
+            for j in fila.clientes: #todo O(n^2) pode virar O(n) com counting sort #todo otimizar queries
+                if get_pos_usuario(j.id, (data['id_fila'])) == 1:
+                    return {
+                        'nome_completo': j.nome_completo,
+                        'id_cliente': j.id
+                    }, 200
+            return {
+                       'nome_completo': 'Não há espera',
+                       'id_cliente': None
+                   }, 200
+        else:
+            return {
+                'message': 'ID da fila faltante.'
+            }, 400
+
+#todo visualizar posição em fila: posicao_atual - clientes atendidos #done
+#todo estabelecimento adiciona pessoa #done
+#todo get tempo_espera_fila #done
+#todo visualizar: proximo da fila, todas pessoas #done
+#todo get estabelecimento por categoria #done
+
+#todo cliente entrou, cliente saiu, cliente faltou #todo
 #todo edit estabelecimento
-#todo get tempo_espera_fila
+
 
 class api_estabelecimento(Resource):
     @jwt_required
+    def get(self):
+        data = parser.parse_args()
+        estabs = []
+        categoria_id = data['categoria_id']
+        id_estabelecimento = data['id_estabelecimento']
+        if categoria_id:
+            estabs = db.session.query(categoria_id=categoria_id).all()
+        elif id_estabelecimento:
+            estabs = db.session.query(id=id_estabelecimento).first()
+        else:
+            estabs = db.session.query().all()
+        result = []
+        for i in estabs:
+            result.append({
+                'id_estabelecimento': i.id,
+                'categoria_id': i.categoria_id,
+                'endereco': i.endereco,
+                'cep': i.cep,
+                'nome': i.nome,
+                'horario_abertura': i.horario_abertura,
+                'horario_fechamento': i.horario_fechamento
+            })
+        return {
+            'estabelecimentos': result
+        }, 200
+    
+class operacao_fila(Resource):
+    @jwt_required
+    def post(self):
+        data = parser.parse_args()
+        id = data['id_fila']
+        fila = db.session.query(Fila).filter_by(id=id).first()
+        for i in fila.clientes: #todo O(n^2) pode virar O(n) com counting sort #todo otimizar queries
+            if get_pos_usuario(i.id, (data['id_fila'])) == 1:
+                user = db.session.query(User).filter_by(int(data['id_fila'])).first()
+                fila.remove(user)
+                db.session.add(fila)
+                db.session.commit()
+                return {
+                    'message': 'Atendimento registrado'
+                }, 200
+        return {
+            'message': 'Erro'
+            }, 500
+
+    ''' @jwt_required
     def put(self):
         data = parser.parse_args()
-        user = User.find_by_username(get_jwt_identity())
-        return None
+        id = int(data['id'])
+        
+        return {
+            'message': 'Dados editados com sucesso'
+        }
+        '''
 
    # @jwt_required
