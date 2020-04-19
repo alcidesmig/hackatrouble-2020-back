@@ -36,7 +36,7 @@
         
 /fila
     - POST: cadastrar fila
-        - args: jwt, args da fila
+        - args: jwt, args da fila (nome,descricao,horario_abertura,horario_fechamento,tempo_espera_indicado,usar_tempo_gerado)
         - retorno: message
     - GET: pegar filas de um estabelecimento
         - args: id_fila (caso busca por única fila), estabelecimento_id (null=todas as filas)
