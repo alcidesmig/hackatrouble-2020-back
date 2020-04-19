@@ -39,10 +39,10 @@ class cliente_fila(Resource):
                 user.cliente.filas.append(fila)
                 tempo_espera_atual = 0
                 if fila.usar_tempo_gerado:
-                    tempo_espera_atual = len(user.cliente.filas) * fila.tempo_espera_gerado
+                    tempo_espera_atual = len(fila.clientes) * fila.tempo_espera_gerado
                     # hora entrada = default
                 else:
-                    tempo_espera_atual = len(user.cliente.filas)* fila.tempo_espera_indicado
+                    tempo_espera_atual = len(fila.clientes)* fila.tempo_espera_indicado
                 db.session.add(user)
                 fila.ultima_posicao = fila.ultima_posicao + 1
                 db.session.add(fila)
