@@ -24,11 +24,11 @@
 /cliente/fila
     - POST: cadastrar cliente em fila
         - args: id_fila, jwt
-        - retorno: message
+        - retorno: message, posicao, tempo_espera_atual
     - GET: pegar filas de cliente
         - args: jwt
-        - retorno: filas
-    - DELETE: cliente desinscrever fila
+        - retorno: filas {id_fila,nome,qtd_pessoas,tempo_espera_atual(do usuario),estabelecimento,posicao}
+    - DELETE: cliente desinscrever de fila
         - args: jwt, id_fila
         - retorno: message
 /fila
@@ -36,8 +36,8 @@
         - args: jwt, args da fila
         - retorno: message
     - GET: pegar filas de um estabelecimento
-        - args: id_estabelecimento (null=todas as filas)
-        - retorno: filas
+        - args: id_fila (caso busca por única fila), estabelecimento_id (null=todas as filas)
+        - retorno: filas {id_fila,nome,qtd_pessoas,tempo_espera_atual,estabelecimento}
     - DELETE: apagar fila
         - args: jwt, id_fila
         - retorno: message

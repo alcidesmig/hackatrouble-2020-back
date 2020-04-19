@@ -8,8 +8,8 @@ db = SQLAlchemy(app)
 cliente_filas = db.Table('relacao_cliente_filas',
                          db.Column('id_fila', db.Integer, db.ForeignKey('fila.id')),
                          db.Column('id_cliente', db.Integer, db.ForeignKey('cliente.id')),
-                         db.Column('hora_entrada', db.Time, default=datetime.now().time())
-                         )
+                         db.Column('hora_entrada', db.Time, default=datetime.now().time()),
+                         db.Column('posicao_absoluta', db.Integer, default=0))
 
 # fonte 13
 @app.before_first_request
@@ -126,11 +126,13 @@ class Fila(db.Model):
                                backref="filas")
     tempo_espera_indicado = db.Column(db.Float, default=0) # Indivídual
     tempo_espera_gerado = db.Column(db.Float, default=0)   # Indivídual
-    
     usar_tempo_gerado = db.Column(db.Boolean, default=True)
-    
     tempo_espera_atual = db.Column(db.Float, default=0)
-
+    
+    ultima_posicao = db.Column(db.Integer, default=0)
+    
+    clientes_atendidos = db.Column(db.Integer, default=0)
+    
     def __repr__(self):
         return self.id
 
