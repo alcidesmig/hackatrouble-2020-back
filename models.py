@@ -1,12 +1,14 @@
 from flask_sqlalchemy import SQLAlchemy
 from passlib.hash import pbkdf2_sha256 as sha256
 from app import app
+from datetime import datetime
 
 db = SQLAlchemy(app)
 
 cliente_filas = db.Table('relacao_cliente_filas',
                          db.Column('id_fila', db.Integer, db.ForeignKey('fila.id')),
-                         db.Column('id_cliente', db.Integer, db.ForeignKey('cliente.id'))
+                         db.Column('id_cliente', db.Integer, db.ForeignKey('cliente.id')),
+                         db.Column('hora_entrada', db.Time, default=datetime.now().time())
                          )
 
 # fonte 13
@@ -92,8 +94,8 @@ class Estabelecimento(db.Model):
     __tablename__ = 'estabelecimento'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(96), nullable=False)
-    horario_abertura = db.Column(db.String(16), nullable=False)
-    horario_fechamento = db.Column(db.String(16), nullable=False)
+    horario_abertura = db.Column(db.Time, nullable=False)
+    horario_fechamento = db.Column(db.Time, nullable=False)
     email = db.Column(db.String(32))
     endereco = db.Column(db.String(128), nullable=False)
     cep = db.Column(db.String(8))
@@ -115,13 +117,17 @@ class Fila(db.Model):
     descricao = db.Column(db.String(256), nullable=False)
     estabelecimento_id = db.Column(db.Integer, db.ForeignKey('estabelecimento.id'))
     estabelecimento = db.relationship("Estabelecimento", back_populates="filas")
-    horario_abertura = db.Column(db.String(16), nullable=False)
-    horario_fechamento = db.Column(db.String(16), nullable=False)
+    horario_abertura = db.Column(db.Time, nullable=False)
+    horario_fechamento = db.Column(db.Time, nullable=False)
     clientes = db.relationship("Cliente",
                                secondary=cliente_filas,
                                backref="filas")
-    tempo_espera_indicado = db.Column(db.Float, default=0)
-    tempo_espera_gerado = db.Column(db.Float, default=0)
+    tempo_espera_indicado = db.Column(db.Float, default=0) # Indivídual
+    tempo_espera_gerado = db.Column(db.Float, default=0)   # Indivídual
+    
+    usar_tempo_gerado = db.Column(db.Boolean, default=True)
+    
+    tempo_espera_atual = db.Column(db.Float, default=0)
 
     def __repr__(self):
         return self.id

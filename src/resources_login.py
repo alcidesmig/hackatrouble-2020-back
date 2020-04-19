@@ -15,20 +15,44 @@ class UserRegistration(Resource):
         user = User(username = data['username'], senha = User.generate_hash(data['password']))
         
         try:
-            user.save_db()
+            if (data['is_cliente']):
+                user.is_cliente = True
+                db.session.add(user)
+                cliente = Cliente(id_user=user.id, nome_completo=data['nome_completo'], celular=data['celular'],
+                                  data_nasc=data['data_nasc'], sexo=data['sexo'], email=data['email'],
+                                  preferencial=data['preferencial'])
+                db.session.add(cliente)
+            else:
+                user.is_cliente = False
+                db.session.add(user)
+                h, m = map(int, data['horario_abertura'].split(':'))
+                horario_abertura = datetime.timedelta(hours=h, minutes=m)
+                h, m = map(int, data['horario_fechamento'].split(':'))
+                horario_fechamento = datetime.timedelta(hours=h, minutes=m)
+
+                estabelecimento = Estabelecimento(id_user=user.id, nome=data['nome'],
+                                                  horario_abertura=horario_abertura,
+                                                  horario_fechamento=horario_fechamento,
+                                                  email=data['email'], endereco=data['endereco'],
+                                                  cep=data['cep'], categoria_id=data['categoria_id'])
+                db.session.add(estabelecimento)
+            
+            db.session.commit()
+            
             access_token = create_access_token(identity=data['username'])
             refresh_token = create_refresh_token(identity = data['username'])
-
+            
             return {
                 'message': 'Usuário {} criado.'.format(data['username']),
                 'access_token': access_token,
                 'refresh_token': refresh_token
-            }
+            }, 200
             
             # return status.HTTP_200_OK
         except:
-            return status.HTTP_500_INTERNAL_SERVER_ERROR
-
+            return {
+                'message': 'Erro desconhecido'
+            }, 500
 
 class UserLogin(Resource):
     def post(self):

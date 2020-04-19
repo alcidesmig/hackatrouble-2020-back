@@ -17,18 +17,22 @@ jwt = JWTManager(app)
 app.config['JWT_BLACKLIST_ENABLED'] = True
 app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 
-import src.views, src.resources as resources, models
+import src.views, src.resources_login as login, src.resources_user as user_api, models
 
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token['jti']
     return models.RevokedTokenModel.is_jti_blacklisted(jti)
+
 api = Api(app)
 
-api.add_resource(resources.UserRegistration, '/registration')
-api.add_resource(resources.UserLogin, '/login')
-api.add_resource(resources.UserLogoutAccess, '/logout/access')
-api.add_resource(resources.UserLogoutRefresh, '/logout/refresh')
-api.add_resource(resources.TokenRefresh, '/token/refresh')
-api.add_resource(resources.AllUsers, '/users')
-api.add_resource(resources.SecretResource, '/secret')
+api.add_resource(login.UserRegistration, '/registration')
+api.add_resource(login.UserLogin, '/login')
+api.add_resource(login.UserLogoutAccess, '/logout/access')
+api.add_resource(login.UserLogoutRefresh, '/logout/refresh')
+api.add_resource(login.TokenRefresh, '/token/refresh')
+api.add_resource(login.AllUsers, '/users')
+api.add_resource(login.SecretResource, '/secret')
+
+api.add_resource(user_api.inscricao_cliente_fila, '/cliente/fila')
+
