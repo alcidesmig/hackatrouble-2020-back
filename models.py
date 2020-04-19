@@ -127,8 +127,7 @@ class Fila(db.Model):
     tempo_espera_indicado = db.Column(db.Float, default=0) # Indivídual
     tempo_espera_gerado = db.Column(db.Float, default=0)   # Indivídual
     usar_tempo_gerado = db.Column(db.Boolean, default=True)
-    tempo_espera_atual = db.Column(db.Float, default=0)
-    
+
     ultima_posicao = db.Column(db.Integer, default=0)
     
     clientes_atendidos = db.Column(db.Integer, default=0)

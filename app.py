@@ -35,7 +35,7 @@ api.add_resource(login.TokenRefresh, '/token/refresh')
 #api.add_resource(login.AllUsers, '/users')
 #api.add_resource(login.SecretResource, '/secret')
 
-api.add_resource(user_api.inscricao_cliente_fila, '/cliente/fila')
+api.add_resource(user_api.cliente_fila, '/cliente/fila')
 api.add_resource(user_api.crud_fila, '/fila')
 api.add_resource(user_api.api_estabelecimento, '/estabelecimento')
 

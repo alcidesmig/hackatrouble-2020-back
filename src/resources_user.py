@@ -20,7 +20,7 @@ def get_pos_usuario(id_cliente, id_fila): #todo mover para utils
             cont_pos += 1
     return cont_pos
 
-class inscricao_cliente_fila(Resource):
+class cliente_fila(Resource):
     @jwt_required
     def post(self):
         data = parser.parse_args()
@@ -37,11 +37,12 @@ class inscricao_cliente_fila(Resource):
         if user.is_cliente and datetime.now().time() < fila.horario_abertura:
             if fila not in user.cliente.filas:
                 user.cliente.filas.append(fila)
+                tempo_espera_atual = 0
                 if fila.usar_tempo_gerado:
-                    fila.tempo_espera_atual = fila.tempo_espera_atual + fila.tempo_espera_gerado
+                    tempo_espera_atual = len(user.cliente.filas) * fila.tempo_espera_gerado
                     # hora entrada = default
                 else:
-                    fila.tempo_espera_atual = fila.tempo_espera_atual + fila.tempo_espera_indicado
+                    tempo_espera_atual = len(user.cliente.filas)* fila.tempo_espera_indicado
                 db.session.add(user)
                 fila.ultima_posicao = fila.ultima_posicao + 1
                 db.session.add(fila)
@@ -55,7 +56,7 @@ class inscricao_cliente_fila(Resource):
                 return {
                     'message': 'Inscrito com sucesso!',
                     'posicao': posicao_rel,
-                    'tempo_espera_atual': fila.tempo_espera_atual
+                    'tempo_espera_atual': tempo_espera_atual
                 }, 500
             else:
                 return {
@@ -97,7 +98,7 @@ class inscricao_cliente_fila(Resource):
         }, 200
         #todo delete
 
-    @jwt_required
+    @jwt_required #todo arrumar posicoes
     def delete(self):
         data = parser.parse_args()
         user = User.find_by_username(get_jwt_identity())
@@ -213,6 +214,7 @@ class crud_fila(Resource):
 #todo estabelecimento adiciona pessoa
 #todo visualizar: proximo da fila, todas pessoas,
 #todo edit estabelecimento
+#todo get tempo_espera_fila
 
 class api_estabelecimento(Resource):
     @jwt_required
