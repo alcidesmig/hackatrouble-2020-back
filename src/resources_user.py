@@ -43,7 +43,7 @@ class cliente_fila(Resource):
         print(user.is_cliente)
         if user.is_cliente == 1: #and datetime.now().time() < fila.horario_abertura:
             print("entrou")
-            if not db.session.query(ClienteFilas).filter_by(id_cliente=user.cliente.id, id_fila=fila.id).first():
+            if len(db.session.query(ClienteFilas).filter_by(id_cliente=user.cliente.id, id_fila=fila.id).all()) == 0:
                 #user.cliente.filas.append(fila)
                 tempo_espera_atual = 0
                 if fila.usar_tempo_gerado:
@@ -118,7 +118,7 @@ class cliente_fila(Resource):
             db.session.delete(busca)
             db.session.commit()
             return {
-                'message': 'Fila apagada!'
+                'message': 'Inscrição apagada!'
             }, 200
         else:
             return {
@@ -272,10 +272,10 @@ class prox_da_fila(Resource):
         filas = []
         if (data['id_fila']):
             fila = db.session.query(Fila).filter_by(id=int((data['id_fila']))).first()
-            for j in fila.clientes: #todo O(n^2) pode virar O(n) com counting sort #todo otimizar queries
-                if get_pos_usuario(j.id, (data['id_fila'])) == 1:
+            for j in fila.cliente_filas: #todo O(n^2) pode virar O(n) com counting sort #todo otimizar queries
+                if get_pos_usuario(j.id, (data['id_fila'])) == 0:
                     return {
-                        'nome_completo': j.nome_completo,
+                        'nome_completo': j.clientes.nome_completo,
                         'id_cliente': j.id
                     }, 200
             return {
@@ -332,13 +332,17 @@ class operacao_fila(Resource):
         id = int(data['id_fila'])
         fila = db.session.query(Fila).filter_by(id=id).first()
         print(fila.nome)
-        for i in fila.clientes: #todo O(n^2) pode virar O(n) com counting sort #todo otimizar queries
-            print("o")
-            if get_pos_usuario(i.cliente.id, (data['id_fila'])) == 1:
-                user = db.session.query(Cliente).filter_by(id=int(data['id_fila'])).first()
-                fila.remove(user)
-                db.session.add(fila)
-                db.session.commit()
+        fila = db.session.query(Fila).filter_by(id=int((data['id_fila']))).first()
+        for j in fila.cliente_filas:  # todo O(n^2) pode virar O(n) com counting sort #todo otimizar queries
+            if get_pos_usuario(j.id, (data['id_fila'])) == 0:
+                pos_fila = db.session.query(ClienteFilas).filter_by(id_cliente=j.clientes.id, id_fila=id).first()
+                try:
+                    db.session.delete(pos_fila)
+                    db.session.commit()
+                except:
+                    return {
+                            'message': 'Fila vazia'
+                        }, 200
                 return {
                     'message': 'Atendimento registrado'
                 }, 200
