@@ -12,14 +12,24 @@ cliente_filas = db.Table('relacao_cliente_filas',
 # fonte 13
 @app.before_first_request
 def create_tables():
+#    return
+    db.drop_all()
     db.create_all()
 
 
 class User(db.Model):
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(16), nullable=False, unique=True) #cpf ou cnpj
     senha = db.Column(db.String(512), nullable=False)
+    
+    is_cliente = db.Column(db.Boolean)
 
+    cliente = db.relationship("Cliente", uselist=False, back_populates="user")
+    estabelecimento = db.relationship("Estabelecimento", uselist=False, back_populates="user")
+
+    
     def save_db(self):
         db.session.add(self)
         db.session.commit()
@@ -59,7 +69,7 @@ class User(db.Model):
     def __repr__(self):
         return self.id
 
-class Cliente(User):
+class Cliente(db.Model):
     __tablename__ = 'cliente'
     id = db.Column(db.Integer, primary_key=True)
     nome_completo = db.Column(db.String(96), nullable=False)
@@ -68,6 +78,10 @@ class Cliente(User):
     sexo = db.Column(db.String(16), nullable=False)  # choices
     email = db.Column(db.String(32), nullable=True)
     email_verificado = db.Column(db.Boolean, default=0)
+    preferencial = db.Column(db.Integer, default=0)
+
+    id_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship("User", back_populates="cliente")
 
     # backref de filas
     def __repr__(self):
@@ -84,8 +98,11 @@ class Estabelecimento(db.Model):
     endereco = db.Column(db.String(128), nullable=False)
     cep = db.Column(db.String(8))
     categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False)
-    categorias = db.relationship('Categoria', back_populates="estabelecimento")
+    categoria = db.relationship('Categoria', back_populates="estabelecimento")
     filas = db.relationship("Fila", back_populates="estabelecimento")
+
+    id_user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship("User", back_populates="estabelecimento")
 
     def __repr__(self):
         return self.id
@@ -114,7 +131,7 @@ class Categoria(db.Model):
     __tablename__ = 'categoria'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(96), nullable=False)
-    estabelecimentos = db.relationship("Estabelecimento", back_populates="categoria")
+    estabelecimento = db.relationship("Estabelecimento", back_populates="categoria")
 
     def __repr__(self):
         return self.id
