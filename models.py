@@ -15,7 +15,7 @@ cliente_filas = db.Table('relacao_cliente_filas',
 @app.before_first_request
 def create_tables():
 #    return
-    db.drop_all()
+ #   db.drop_all()
     db.create_all()
 
 
@@ -105,6 +105,8 @@ class Estabelecimento(db.Model):
 
     id_user = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship("User", back_populates="estabelecimento")
+
+    #todo dias funcionamento
 
     def __repr__(self):
         return self.id

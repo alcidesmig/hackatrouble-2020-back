@@ -26,13 +26,15 @@ def check_if_token_in_blacklist(decrypted_token):
 
 api = Api(app)
 
-api.add_resource(login.UserRegistration, '/registration')
+api.add_resource(login.UserRegistration, '/register')
 api.add_resource(login.UserLogin, '/login')
 api.add_resource(login.UserLogoutAccess, '/logout/access')
 api.add_resource(login.UserLogoutRefresh, '/logout/refresh')
 api.add_resource(login.TokenRefresh, '/token/refresh')
-api.add_resource(login.AllUsers, '/users')
-api.add_resource(login.SecretResource, '/secret')
+
+#api.add_resource(login.AllUsers, '/users')
+#api.add_resource(login.SecretResource, '/secret')
 
 api.add_resource(user_api.inscricao_cliente_fila, '/cliente/fila')
+api.add_resource(user_api.fila, '/fila')
 
