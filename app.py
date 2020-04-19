@@ -38,7 +38,7 @@ api.add_resource(login.TokenRefresh, '/token/refresh')
 api.add_resource(user_api.cliente_fila, '/cliente/fila')
 api.add_resource(user_api.crud_fila, '/fila')
 api.add_resource(user_api.visualizar_ordem_fila, '/fila/ordem')
-api.add_resource(user_api.prox_da_fila, '/fila/proximo')
-api.add_resource(user_api.operacao_fila, '/fila/atendimento-encerrado')
+api.add_resource(user_api.prox_da_fila, '/fila/proximo') #testar
+api.add_resource(user_api.operacao_fila, '/fila/atendimento-encerrado') #testar
 api.add_resource(user_api.api_estabelecimento, '/estabelecimento')
 

@@ -2,12 +2,14 @@ from flask_restful import Resource, reqparse
 from flask_api import status
 from models import *
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
+import datetime
 
 parser = reqparse.RequestParser()
 parser.add_argument('username', help = 'Este campo não pode ser nulo', required = True)
 parser.add_argument('password', help = 'Este campo não pode ser nulo', required = True)
 parser.add_argument('is_cliente', type=bool)
 parser.add_argument('nome_completo')
+parser.add_argument('nome')
 parser.add_argument('celular')
 parser.add_argument('data_nasc')
 parser.add_argument('sexo')
@@ -27,32 +29,46 @@ class UserRegistration(Resource):
         user = User(username = data['username'], senha = User.generate_hash(data['password']))
         print(data)
         try:
-            if (data['is_cliente']):
+            if (bool(data['is_cliente']) == True):
                 user.is_cliente = True
-                db.session.add(user)
+                
                 print("user_add")
-                cliente = Cliente(id_user=user.id, nome_completo=data['nome_completo'], celular=data['celular'],
+
+                print("ok")
+                db.session.add(user)
+                user_id = User.find_by_username(data['username']).id #todo refazer
+                print("id", user_id)
+                db.session.commit()
+                cliente = Cliente(id_user=user_id, nome_completo=data['nome_completo'], celular=data['celular'],
                                   data_nasc=data['data_nasc'], sexo=data['sexo'], email=data['email'],
                                   preferencial=data['preferencial'])
-                print("ok")
+               # user.cliente = cliente
+               # db.session.add(user)
                 db.session.add(cliente)
+                print("cliente")
             else:
                 user.is_cliente = False
                 db.session.add(user)
+                print("aqui")
                 h, m = map(int, data['horario_abertura'].split(':'))
-                horario_abertura = datetime.timedelta(hours=h, minutes=m)
+                print(datetime.time(hour=h, minute=m, second=0))
+                horario_abertura = datetime.time(hour=h, minute=m, second=0)
+                print("erro")
                 h, m = map(int, data['horario_fechamento'].split(':'))
-                horario_fechamento = datetime.timedelta(hours=h, minutes=m)
-
+                horario_fechamento = datetime.time(hour=h, minute=m, second=0)
+                print("aqui2")
                 estabelecimento = Estabelecimento(id_user=user.id, nome=data['nome'],
                                                   horario_abertura=horario_abertura,
                                                   horario_fechamento=horario_fechamento,
                                                   email=data['email'], endereco=data['endereco'],
-                                                  cep=data['cep'], categoria_id=data['categoria_id'])
+                                                  cep=data['cep'])#, categoria_id=data['categoria_id'])
+                print("ad")
                 db.session.add(estabelecimento)
+                user.estabelecimento = estabelecimento
+                print("fim")
             
             db.session.commit()
-            
+            print('commitado')
             access_token = create_access_token(identity=data['username'])
             refresh_token = create_refresh_token(identity = data['username'])
             
@@ -64,6 +80,8 @@ class UserRegistration(Resource):
             
             # return status.HTTP_200_OK
         except:
+            import traceback
+            traceback.print_exc()
             return {
                 'message': 'Erro desconhecido'
             }, 500
@@ -75,7 +93,7 @@ class UserLogin(Resource):
         if not user:
             return {'message': 'O usuário não existe.'}
         
-        if User.verify_hash(data['password'], user.password):
+        if User.verify_hash(data['password'], user.senha):
             access_token = create_access_token(identity=data['username'])
             refresh_token = create_refresh_token(identity=data['username'])
             return {

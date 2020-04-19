@@ -7,11 +7,6 @@ from datetime import datetime
 
 db = SQLAlchemy(app)
 
-cliente_filas = db.Table('relacao_cliente_filas',
-                         db.Column('id_fila', db.Integer, db.ForeignKey('fila.id')),
-                         db.Column('id_cliente', db.Integer, db.ForeignKey('cliente.id')),
-                         db.Column('hora_entrada', db.Time, default=datetime.now().time()),
-                         db.Column('posicao_absoluta', db.Integer, default=0))
 
 # fonte 13
 @app.before_first_request
@@ -19,6 +14,17 @@ def create_tables():
 #    return
  #   db.drop_all()
     db.create_all()
+
+class ClienteFilas(db.Model):
+    id = db.Column('id', db.Integer, primary_key=True)
+    id_fila = db.Column(db.Integer, db.ForeignKey('fila.id'))
+    id_cliente = db.Column(db.Integer, db.ForeignKey('cliente.id'))
+    
+    clientes = db.relationship("Cliente", back_populates='cliente_filas')
+    filas = db.relationship("Fila", back_populates='cliente_filas')
+    
+    posicao_absoluta = db.Column('posicao_absoluta', db.Integer, default=0)
+    hora_entrada = db.Column('hora_entrada', db.Time, default=datetime.now().time())
 
 
 class User(db.Model):
@@ -86,6 +92,8 @@ class Cliente(db.Model):
 
     id_user = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship("User", back_populates="cliente")
+    
+    cliente_filas = db.relationship("ClienteFilas", back_populates="clientes")
 
     # backref de filas
     def __repr__(self):
@@ -101,7 +109,7 @@ class Estabelecimento(db.Model):
     email = db.Column(db.String(32))
     endereco = db.Column(db.String(128), nullable=False)
     cep = db.Column(db.String(8))
-    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False)
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=True)
     categoria = db.relationship('Categoria', back_populates="estabelecimento")
     filas = db.relationship("Fila", back_populates="estabelecimento")
 
@@ -123,9 +131,9 @@ class Fila(db.Model):
     estabelecimento = db.relationship("Estabelecimento", back_populates="filas")
     horario_abertura = db.Column(db.Time, nullable=False)
     horario_fechamento = db.Column(db.Time, nullable=False)
-    clientes = db.relationship("Cliente",
-                               secondary=cliente_filas,
-                               backref="filas")
+
+    cliente_filas = db.relationship("ClienteFilas", back_populates="filas")
+
     tempo_espera_indicado = db.Column(db.Float, default=0) # Indivídual
     tempo_espera_gerado = db.Column(db.Float, default=0)   # Indivídual
     usar_tempo_gerado = db.Column(db.Boolean, default=True)

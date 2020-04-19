@@ -35,13 +35,13 @@
         - retorno: message
         
 /fila
-    - POST: cadastrar fila
+    - POST: cadastrar fila (ok)
         - args: jwt, args da fila (nome,descricao,horario_abertura,horario_fechamento,tempo_espera_indicado,usar_tempo_gerado)
         - retorno: message
-    - GET: pegar filas de um estabelecimento
+    - GET: pegar filas de um estabelecimento (ok)
         - args: id_fila (caso busca por única fila), estabelecimento_id (null=todas as filas)
         - retorno: filas {id_fila,nome,qtd_pessoas,tempo_espera_atual,estabelecimento_id,nome_estabelecimento}
-    - DELETE: apagar fila
+    - DELETE: apagar fila (ok)
         - args: jwt, id_fila
         - retorno: message
 
@@ -56,7 +56,7 @@
         - retorno: estabelecimentos{id_estabelecimento,categoria_id,endereco,cep,nome,horario_abertura,horario_fechamento}
         
 /fila/proximo:
-    - POST: dados do prox usuario a ser atendido
+    - GET: dados do prox usuario a ser atendido
         - args: jwt, id_fila
         - retorno: nome_completo, id_cliente (null = sem fila)
 
