@@ -1,4 +1,5 @@
 ## Hackatrouble 2020
+**2º lugar (categoria: Negócios – Soluções e Valorização de Negócios Regionais)**
 
   Em tempos de coronavírus nós sabemos que nossa humanidade não pára, nossas necessidades não param. Mas ao mesmo tempo temos que proteger aquilo que nos é mais valioso: vidas. Infelizmente, muitas pessoas não podem simplesmente parar de ir aos mercados, farmácias e bancos.
   
@@ -11,5 +12,14 @@
 _**"Já que as pessoas estarão na rua, que seja de uma forma mais segura possível e por menos tempo possível."**_
 
 
+
+## Equipe
+- Alcides Mignoso e Silva
+- Lorhan Sohaky de Oliveira Duda Kondo
+- Leonardo Penna de Lima
+- Mariana Cavichioli Silva
+- Renata Sarmet Smirdele Mendes
+
+## Videos
 * https://www.youtube.com/watch?v=DfbzSl0xzYE
 * https://www.youtube.com/watch?v=bgTjuj08LtU
